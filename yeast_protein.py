@@ -20,28 +20,22 @@ def powerlaw(x, alpha, beta, x0):
 Propagation_matrix = []
 colored_nodes = []
 
-def show_graph_with_labels(adjacency_matrix,size = 1):
-	length = len(dataset[(list(dataset)[0])].tolist())
-	edges =[]
-	print dataset
-	G = nx.Graph()
-	for x in xrange(0,length):
-		source = (dataset[(list(dataset)[0])].tolist())[x]
-		target = (dataset[(list(dataset)[1])].tolist())[x]
-		edges.append((source,target))
 
-	G.add_edges_from(edges)
+G = nx.Graph()
+
+
+def show_degree_centrality(G):
+
+
 	degrees = G.degree() #Dict with Node ID, Degree
 	nodes = G.nodes()
+	edges = G.edges()
 	n_color = np.asarray([degrees[n] for n in nodes])
 	
 	print "\n\nmin degree ="+ str(min(n_color))
 	print "max degree ="+ str(max(n_color))
-	print str([x == min(n_color)  for x in n_color].count(1))+ " nodes have minimum number of degrees"
-	print str([x == max(n_color)  for x in n_color].count(1))+ " nodes nodes have maximum number of degrees"
-
-	
-	
+	print str([x == min(n_color)  for x in n_color].count(1))+ " nodes have minimum degree centralities"
+	print str([x == max(n_color)  for x in n_color].count(1))+ " nodes nodes have maximum degree centralities"	
 	maxitem = 0
 	for x in n_color:
 		if x == max(n_color):
@@ -50,29 +44,22 @@ def show_graph_with_labels(adjacency_matrix,size = 1):
 	start = maxitem
 	print 'node with maximum degrees = ' + str(maxitem) + " with num of degrees = "+ str(max(n_color))
 	
-	
 	fixed_positions = {1: (maxitem,max(n_color))}#dict with two of the positions set
 	fixed_nodes = fixed_positions.keys()
 	pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
 
-
-
-
 	plt.figure("Protein interactions in Yeast")
 	plt.subplot(211)
 	nx.draw(G,pos = pos ,node_color=n_color, nodelist = G.nodes(),cmap='coolwarm',with_labels=False,node_size= n_color,width = 0.1)
-
-
+	
 	Affected = []
-
-
-
+	
 	for i in xrange(0,max(nodes)+1):
 		Propagation_matrix.append(0)
 		Affected.append(0)
 
 	propagate_color(start,edges)
-	print "Propagation from point " + str(start) + "  affected "+str(Propagation_matrix.count(1))
+	print "Propagation from point " + str(start) + "  affected "+str(Propagation_matrix.count(1)) + " nodes"
 	Affected[maxitem] = Propagation_matrix.count(1)
 	prop_array = np.asarray([p for p in Propagation_matrix])
 	n_color_2 =  np.asarray([degrees[n] for n in colored_nodes])
@@ -85,9 +72,20 @@ def show_graph_with_labels(adjacency_matrix,size = 1):
 	plt.show(block=True)
 
 
-	
-	'''
-	for start in nodes:
+
+
+def show_color_propagation(G):
+	global Propagation_matrix
+
+	Affected = []
+	nodes = G.nodes()
+	edges = G.edges()
+	if Propagation_matrix == []:
+		for i in xrange(0,max(nodes)+1):
+			Propagation_matrix.append(0)
+			Affected.append(0)
+
+	for start in G.nodes():
 		for i in xrange(0,max(nodes)+1):
 			Propagation_matrix[i] = 0
 		propagate_color(start,edges)
@@ -100,12 +98,12 @@ def show_graph_with_labels(adjacency_matrix,size = 1):
 	plt.ylim(-1,2000)
 	plt.title("Number of nodes that can be affected from different starting points ")
 	plt.plot(Affected,'ro')	
-	
-	#plt.show()	#plt.ylim(-1,2000)
-	'''
-	
 
-	'''
+
+def show_degree_distribution(G):
+	nodes = G.nodes()
+	degrees = G.degree()
+	n_color = np.asarray([degrees[n] for n in nodes])
 	plt.figure("Power Law - degrees frequency")
 	plt.xlabel("Nodes")
 	plt.ylabel("Degrees")
@@ -115,26 +113,30 @@ def show_graph_with_labels(adjacency_matrix,size = 1):
 	plt.plot(x, powerlaw(x, *parameters), label = "power_law",color = "r")
 	plt.legend()
 	plt.show()
-	'''
 
 
-
+def show_graph_info(G):
+	nodes = G.nodes()
+	edges = G.edges()
 	#print "Degree centrality = "+str(nx.algorithms.degree_centrality(G))
 	print "Graph density = " + str(nx.density(G))
 	print "Number of edges : " + str(len(edges))
 	print "Number of nodes: " + str(len(nodes))
 
+def show_closeness_centrality(G):
+	nodes = G.nodes()	
 	closeness_centralities = []
+	degrees = G.degree()
 	#print nodes
 	for n in nodes:
 		closeness_centralities.append(nx.closeness_centrality(G, u=n))
 
-	plt.figure("closeness_centrality centralities")
+	plt.figure("closeness centralities")
 	plt.xlabel("nodes")
-	plt.ylabel("centrality")
+	plt.ylabel("degree centrality")
 
-	print str([x == min(closeness_centralities)  for x in closeness_centralities].count(1))+ " nodes have minimum centralities"
-	print str([x == max(closeness_centralities)  for x in closeness_centralities].count(1))+ " nodes have maximum centralities"
+	print str([x == min(closeness_centralities)  for x in closeness_centralities].count(1))+ " nodes have minimum closeness centralities"
+	print str([x == max(closeness_centralities)  for x in closeness_centralities].count(1))+ " nodes have maximum closeness centralities"
 
 	max_centrality_node = 0
 	for x in closeness_centralities:
@@ -144,32 +146,114 @@ def show_graph_with_labels(adjacency_matrix,size = 1):
 
 	print "max centrality node = "+str(max_centrality_node)+ " with value : "+str(max(closeness_centralities)) + " and degree = " \
 		+str(degrees[max_centrality_node])
-	plt.scatter(max_centrality_node,max(closeness_centralities),color = "red",label = "best node")
-	plt.scatter(nodes,closeness_centralities,color = "blue" , label = "centralities")
+	plt.scatter(max_centrality_node,max(closeness_centralities),color = "red",label = "best node",s = 20)
+	plt.scatter(nodes,closeness_centralities,color = "blue" , label = "centralities",s = 2)
 	plt.legend()
 	plt.show(block=True)
 
-
-	
 	if len(closeness_centralities) != len(nodes):
 		print 'error size'
 		exit(-1)
-
-
 	G3 = G.copy()
 	edges = G.edges()
 	for e in edges:
 		if closeness_centralities[e[0]-1] == 0.0:
 			G3.remove_edge(e[0],e[1])
-
-	nx.draw(G,node_color= closeness_centralities ,nodelist = nodes,cmap='coolwarm',with_labels=False,node_size= closeness_centralities,width = 0.1)
+	sizes = [x * 50 for x in closeness_centralities]
+	plt.figure("Closeness centralities Graph")
+	nx.draw(G3,node_color= closeness_centralities ,nodelist = nodes,cmap='coolwarm',with_labels=False, \
+		node_size= sizes, width = 0.1)
 	plt.show(block=True)
 
 
 
+def show_betweeness_centrality(G):
+	nodes = G.nodes()
+	degrees = G.degree()
+	temp = nx.betweenness_centrality(G)
+	inbetween_centralities = []
+	for x in temp:
+		inbetween_centralities.append(temp.get(x))
 
-	#print "Average degree connectivity" + str(nx.average_degree_connectivity(G))
+	plt.figure("inbetween centralities")
+	plt.xlabel("nodes")
+	plt.ylabel("degree centrality")
 
+	print str([x == min(inbetween_centralities)  for x in inbetween_centralities].count(1))+ " nodes have minimum closeness centralities"
+	print str([x == max(inbetween_centralities)  for x in inbetween_centralities].count(1))+ " nodes have maximum closeness centralities"
+
+	max_centrality_node = 0
+	for x in inbetween_centralities:
+		if x == max(inbetween_centralities):
+			break
+		max_centrality_node+=1
+
+	print "max centrality node = "+str(max_centrality_node)+ " with value : "+str(max(inbetween_centralities)) + " and degree = " \
+		+str(degrees[max_centrality_node])
+	plt.scatter(max_centrality_node,max(inbetween_centralities),color = "red",label = "best node",s = 20)
+	plt.scatter(nodes,inbetween_centralities,color = "blue" , label = "centralities",s = 2)
+	plt.legend()
+	plt.show(block=True)
+
+	if len(inbetween_centralities) != len(nodes):
+		print 'error size'
+		exit(-1)
+
+	G4 = G.copy()
+	edges = G.edges()
+	for e in edges:
+		if inbetween_centralities[e[0]-1] == 0.0:
+			G4.remove_edge(e[0],e[1])
+
+	sizes = [x * 100 for x in inbetween_centralities]
+	plt.figure("inbetweeness centralities Graph")
+	nx.draw(G4,node_color= inbetween_centralities ,nodelist = nodes,cmap='coolwarm',with_labels=False, \
+		node_size= sizes, width = 0.1)
+	plt.show(block=True)
+
+
+
+def show_pagerank(G):
+
+	nodes = G.nodes()
+	ranks = nx.pagerank(G)
+	#print ranks
+	plt.figure("PageRank")
+
+	x = [r for r in ranks ]
+	y = [ranks[r] for r in ranks ]
+	print "maximum page rank  = " + str(max(y))
+
+	best_node = 0
+	for k in x :
+		if ranks[k] == max(y):
+			print "best page rank node =  " + str(k)
+			best_node = k
+			break
+	
+	plt.scatter(x,y,color = "blue", s = 1)
+	plt.scatter(best_node,max(y),color = "red" , s = 5)
+	plt.show()
+	
+
+	plt.figure("PageRank")
+	yarray = np.asarray([k*5000 for k in y])
+	xarray = np.asarray([k for k in x])
+
+	nx.draw(G,node_color= yarray ,cmap='coolwarm',with_labels=False,node_size= yarray, width = 0.1)
+	plt.show()
+
+
+def initialize_network(G,dataset):
+	
+	length = len(dataset[(list(dataset)[0])].tolist())
+	edges =[]
+	for x in xrange(0,length):
+		source = (dataset[(list(dataset)[0])].tolist())[x]
+		target = (dataset[(list(dataset)[1])].tolist())[x]
+		edges.append((source,target))
+
+	G.add_edges_from(edges)
 
 
 
@@ -208,7 +292,6 @@ if __name__ == '__main__':
 		else:
 			csv_file = str(sys.argv[1])
 	dataset=pd.read_csv(csv_file,delimiter= " ",header= 1)
-	#print(list(dataset))
 	if len(list(dataset)) > 2 :
 		min_index = 2
 		if list(dataset)[0]== '%':
@@ -216,15 +299,20 @@ if __name__ == '__main__':
 			dataset.drop(['%'],axis=1,inplace = True)
 			min_index = 2
 		trange = len(list(dataset))
-		#print list(dataset)
 		for x in xrange(min_index,trange):
 			col = list(dataset)[min_index] 
 			print("drop "+col)
 			dataset.drop(col,axis=1, inplace = True)
-		#print(list(dataset))
-	
-	#print dataset
 
-	show_graph_with_labels(dataset,5)
+	initialize_network(G,dataset)
+	'''
+	show_degree_distribution(G)
+	show_graph_info(G)
+	show_pagerank(G)
 
+	show_betweeness_centrality(G)
+	show_closeness_centrality(G)
+	show_color_propagation(G)
+	'''
+	show_degree_centrality(G)
 	
