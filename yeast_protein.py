@@ -90,8 +90,9 @@ class ProteinNetwork:
 				Affected.append(0)
 
 		for start in self.proteins:
-			for i in xrange(0,max(self.proteins)+1):
+			for i in xrange(0,max(self.proteins)+1)Affected.append(0):
 				self.Propagation_matrix[i] = 0
+				Affected.append(0)
 			self.propagate_color(start)
 			print "Propagation from point " + str(start) + "  affected "+str(self.Propagation_matrix.count(1)) + " nodes"
 			Affected[start] = self.Propagation_matrix.count(1)
@@ -266,18 +267,15 @@ if __name__ == '__main__':
 			csv_file = str(sys.argv[2])
 		else:
 			csv_file = str(sys.argv[1])
-	dataset=pd.read_csv(csv_file,delimiter= " ",header= 1)
-	if len(list(dataset)) > 2 :
-		min_index = 2
-		if list(dataset)[0]== '%':
-			print("drop %")
-			dataset.drop(['%'],axis=1,inplace = True)
-			min_index = 2
-		trange = len(list(dataset))
-		for x in xrange(min_index,trange):
-			col = list(dataset)[min_index] 
-			print("drop "+col)
-			dataset.drop(col,axis=1, inplace = True)
+
+	
+	header_num = 0
+	while True:
+		dataset=pd.read_csv(csv_file,delimiter= " ",header= header_num)
+		if list(dataset)[0] == '%':
+			header_num += 1
+		else:
+			break
 
 	G = ProteinNetwork(dataset)
 	G.show_graph_info()

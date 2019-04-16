@@ -1,0 +1,14 @@
+This directory contains the TSV and related files of the protein network:
+
+This undirected network contains protein interactions contained in yeast. Research showed that proteins with a high degree were more important for the surivial of the yeast than others. A node represents a protein and an edge represents a metabolic interaction between two proteins.  The network contains loops.
+
+
+
+Files: 
+    meta.protein-protein -- Metadata about the network 
+    out.protein-protein -- The adjacency matrix of the network in space separated values format, with one edge per line
+      The meaning of the columns in out.protein-protein are: 
+        First column: ID of from node 
+        Second column: ID of to node
+
+
